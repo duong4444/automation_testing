@@ -73,4 +73,82 @@ test.describe('Kiểm thử chức năng Đăng nhập tài khoản', () => {
     console.log(`Đăng nhập thành công! Tên người dùng hiển thị trên header: "${accountNameText.trim()}"`);
     expect(accountNameText.trim().length).toBeGreaterThan(0);
   });
+
+  test('Đăng nhập thất bại khi bỏ trống Email hoặc Mật khẩu', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.navigateToLogin();
+
+    // 1. Trường hợp bỏ trống cả 2
+    await page.click(loginPage.submitButton);
+    await page.waitForTimeout(1000);
+    expect(page.url()).toContain('/dang-nhap');
+
+    // 2. Trường hợp chỉ điền Email, bỏ trống Mật khẩu
+    await page.fill(loginPage.emailInput, 'test_empty_password@gmail.com');
+    await page.click(loginPage.submitButton);
+    await page.waitForTimeout(1000);
+    
+    // Đảm bảo vẫn ở trang đăng nhập
+    expect(page.url()).toContain('/dang-nhap');
+  });
+
+  test('Đăng nhập thất bại khi nhập email sai định dạng', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.navigateToLogin();
+
+    // Nhập email sai định dạng và mật khẩu
+    await loginPage.login('invalid_email_format', 'SomePassword123');
+    await page.waitForTimeout(3000);
+
+    // Xác thực: Vẫn giữ nguyên trang đăng nhập
+    expect(page.url()).toContain('/dang-nhap');
+  });
+
+  test('Đăng nhập qua Google - Mở cửa sổ liên kết Google OAuth', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.navigateToLogin();
+
+    // Lắng nghe sự kiện mở popup của trình duyệt khi click nút đăng nhập Google
+    const popupPromise = page.waitForEvent('popup');
+    // Click vào thẻ ảnh bên trong link (tránh lỗi collapsed size do style float:left của thẻ ảnh)
+    await page.click('a[href="javascript:open_oauth(\'Google\')"] img');
+    
+    const popup = await popupPromise;
+    await popup.waitForLoadState('domcontentloaded').catch(() => {});
+    
+    // Xác thực: Cửa sổ popup được mở và trỏ đúng về hệ thống xác thực accounts.google.com
+    const popupUrl = popup.url();
+    console.log('URL của cửa sổ Google OAuth:', popupUrl);
+    expect(popupUrl).toContain('accounts.google.com');
+    
+    await popup.close();
+  });
+
+  test('Đăng nhập qua Facebook - Mở cửa sổ liên kết Facebook OAuth', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.navigateToLogin();
+
+    // Lắng nghe popup khi click nút đăng nhập Facebook
+    const popupPromise = page.waitForEvent('popup');
+    // Click vào thẻ ảnh bên trong link
+    await page.click('a[href="javascript:open_oauth(\'Facebook\')"] img');
+    
+    const popup = await popupPromise;
+    await popup.waitForLoadState('domcontentloaded').catch(() => {});
+    
+    // Xác thực 1: Cửa sổ popup được mở và trỏ đúng về facebook.com
+    const popupUrl = popup.url();
+    console.log('URL của cửa sổ Facebook OAuth:', popupUrl);
+    expect(popupUrl).toContain('facebook.com');
+    
+    // Xác thực 2 (Tìm lỗi thực tế): Kiểm tra xem trang có bị hiển thị lỗi cấu hình ứng dụng không
+    // (Đây là lỗi thật trên website An Phát PC khi họ chưa kích hoạt/cấu hình đúng Facebook App ID)
+    const popupBodyText = await popup.innerText('body');
+    console.log('Nội dung hiển thị trên trang Facebook OAuth:', popupBodyText.substring(0, 100));
+    
+    expect(popupBodyText).not.toContain('Ứng dụng không hoạt động');
+    expect(popupBodyText).not.toContain('App not active');
+    
+    await popup.close();
+  });
 });

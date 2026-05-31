@@ -16,11 +16,7 @@ class LoginPage extends BasePage {
   async login(email, password) {
     await this.page.fill(this.emailInput, email);
     await this.page.fill(this.passwordInput, password);
-    
-    await Promise.all([
-      this.page.waitForNavigation({ waitUntil: 'networkidle', timeout: 15000 }).catch(() => {}),
-      this.page.click(this.submitButton)
-    ]);
+    await this.page.click(this.submitButton);
   }
 }
 

@@ -30,11 +30,7 @@ class RegisterPage extends BasePage {
     await this.page.fill(this.mobileInput, mobile);
     await this.page.click(this.genderMaleRadio);
     
-    // Click submit and wait for navigation or state change
-    await Promise.all([
-      this.page.waitForNavigation({ waitUntil: 'networkidle', timeout: 15000 }).catch(() => {}),
-      this.page.click(this.submitButton)
-    ]);
+    await this.page.click(this.submitButton);
   }
 }
 
