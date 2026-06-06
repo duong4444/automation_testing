@@ -140,8 +140,7 @@ test.describe("Kiểm thử chức năng Đăng ký tài khoản", () => {
     await registerPage.navigateToRegister();
 
     let dialogMessage = "";
-
-    page.once("dialog", async (dialog) => {
+    page.on("dialog", async (dialog) => {
       dialogMessage = dialog.message();
       await dialog.accept();
     });
@@ -154,12 +153,19 @@ test.describe("Kiểm thử chức năng Đăng ký tài khoản", () => {
     );
     await page.fill(registerPage.passwordInput, "Password123!");
     await page.fill(registerPage.passwordConfirmInput, "Password123!");
-    await page.fill(registerPage.mobileInput, "090abc1234"); // SĐT không hợp lệ
+    await page.fill(registerPage.mobileInput, "03t4loi6s7d"); // Nhập SĐT chứa chữ theo phát hiện của user
 
     await page.click(registerPage.submitButton);
-    await expect.poll(() => dialogMessage).not.toBe("");
+    
+    // Đợi 2 giây phản hồi từ trang web
+    await page.waitForTimeout(2000);
 
+    // Xác thực 1: Kỳ vọng hệ thống hiển thị Dialog thông báo lỗi
+    expect(dialogMessage).not.toBe("");
     expect(dialogMessage).toContain("Điện thoại không hợp lệ");
+
+    // Xác thực 2: Kỳ vọng URL không được chứa status=success
+    expect(page.url()).not.toContain("status=success");
   });
 
   test("Kiểm tra chuyển hướng từ trang Đăng ký sang Đăng nhập", async ({
@@ -215,20 +221,31 @@ test.describe("Kiểm thử chức năng Đăng ký tài khoản", () => {
     page,
   }) => {
     const registerPage = new RegisterPage(page);
-    await registerPage.navigateToRegister();
 
-    const invalidEmails = ["test@com", "nguyenvan@", "@gmail.com"];
+    const uniqueId = Date.now();
+    // Sinh các email không hợp lệ ngẫu nhiên để tránh bị lỗi "Email trùng lặp" che khuất bug validate thực tế
+    const invalidEmails = [
+      `invalid_email_${uniqueId}`,          // Không có ký tự @ và tên miền (giống "foobar")
+      `invalid_${uniqueId}@com`,             // Thiếu dấu chấm ở tên miền
+    ];
 
     for (const email of invalidEmails) {
+      await registerPage.navigateToRegister(); // Quay lại trang đăng ký ở mỗi vòng lặp tránh kẹt URL thành công
+
+      const randomPhone = `09${Math.floor(10000000 + Math.random() * 90000000)}`;
+
       await page.fill(registerPage.fullNameInput, "Nguyễn Văn A");
       await page.fill(registerPage.emailInput, email);
       await page.fill(registerPage.passwordInput, "Password123!");
       await page.fill(registerPage.passwordConfirmInput, "Password123!");
-      await page.fill(registerPage.mobileInput, "0912345678");
+      await page.fill(registerPage.mobileInput, randomPhone); // Sinh số điện thoại ngẫu nhiên để tránh lỗi trùng số điện thoại
       await page.click(registerPage.submitButton);
 
-      // Kiểm tra HTML5 validation hoặc thông báo lỗi từ server
-      await expect(page).not.toHaveURL(/status=success/);
+      await page.waitForTimeout(2000);
+
+      // Xác thực: Hệ thống không được chuyển hướng thành công.
+      // Nếu có bug xảy ra (đăng ký thành công), URL sẽ chứa status=success làm test case bị FAIL đỏ lập tức!
+      expect(page.url()).not.toContain("status=success");
     }
   });
 

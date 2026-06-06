@@ -1,0 +1,19 @@
+Với sự phát triển mạnh mẽ của công nghệ, trong chục năm trở lại đây, 
+việc mua sắm trực tuyến đã gần như thay thế phần lớn mua sắm trực tiếp,
+ nó biến các nền tảng bán lẻ trực tuyến thành một chiến trường cạnh tranh khốc liệt.
+  Với bối cảnh đó, tính ổn định, tốc độ phản hồi và độ bảo mật của hệ thống là những yếu tố cốt lõi quyết định sự thành bại của một website. 
+  Để đảm bảo những yếu tố trên, các website phải trải qua quy trình kiểm thử phần mềm vô cùng nghiêm ngặt. 
+  Tuy nhiên, khi quy mô hệ thống ngày càng mở rộng với hàng loạt logic nghiệp vụ đan xen, phương pháp kiểm thử thủ công dần bộc lộ 
+  những rào cản lớn về hiệu suất, thời gian và xác suất bỏ sót lỗi biên. Chính vì vậy, 
+  việc dịch chuyển sang kiểm thử tự động không chỉ là một xu hướng công nghệ, 
+  mà là một giải pháp sống còn để tối ưu hóa quy trình phát triển phần mềm.
+Xuất phát từ nhu cầu thực tiễn đó, báo cáo này tập trung vào việc nghiên cứu, thiết kế và triển khai kịch bản kiểm thử tự động trên website An Phát PC bằng công cụ Playwright.
+
+Dựa trên việc phân tích các tính năng ảnh hưởng trực tiếp đến trải nghiệm người dùng, chúng em đã lựa chọn xây dựng mã nguồn tự động hóa cho 3 phân hệ cốt lõi:
+- Module Đăng ký: Tập trung kiểm tra tính toàn vẹn và hợp lệ của dữ liệu đầu vào thông qua các kịch bản kiểm thử biên phức tạp, xử lý lỗi định dạng số điện thoại/email, kiểm soát các ký tự đặc biệt có nguy cơ SQL Injection và xác thực phản hồi của hệ thống.
+- Module Đăng nhập: Đảm bảo an toàn thông tin thông qua việc xác thực tài khoản, kiểm tra xử lý lỗi khi sai thông tin, xác thực cơ chế hoạt động của các liên kết đăng nhập bên thứ ba (Google OAuth, Facebook OAuth) và xác nhận trạng thái đăng nhập thành công qua hiển thị header của người dùng.
+- Module Tìm kiếm và Lọc sản phẩm: Tự động hóa các hành vi tương tác nghiệp vụ tìm kiếm, từ việc xử lý từ khóa đặc biệt, khoảng trắng thừa, đến cơ chế sắp xếp sản phẩm (theo giá, tên, độ phổ biến, mới nhất) và lọc nâng cao theo khoảng giá cũng như thương hiệu để tối ưu hóa trải nghiệm tìm kiếm của khách hàng.
+
+Với việc sử dụng ngôn ngữ JavaScript kết hợp với thư viện Playwright để hiện thực hóa các kịch bản kiểm thử từ lý thuyết thành các kịch bản chạy tự động (Test Scripts). Quá trình triển khai thực tế trên môi trường Front-end của hệ thống đã giúp chúng em giải quyết nhiều bài toán kỹ thuật thực tiễn, điển hình như việc tối ưu hóa cơ chế tự động đợi bất đồng bộ (Auto-waiting), xử lý cửa sổ mới (Popup/OAuth windows), lắng nghe và phản hồi hộp thoại cảnh báo (Dialog/Alert listener) cũng như kiểm soát luồng hoạt động ổn định của trình duyệt.
+
+Mặc dù đã dành nhiều thời gian nghiên cứu và cố gắng hoàn thiện học phần này một cách chỉn chu nhất, song do những giới hạn về mặt kinh nghiệm thực tế, báo cáo khó lòng tránh khỏi những thiếu sót nhất định. Chúng em rất mong sẽ nhận được những ý kiến đánh giá, nhận xét và đóng góp quý báu từ quý cô để kiến thức của chúng em được hoàn thiện hơn, làm bệ phóng vững chắc cho công việc chuyên môn sau này.
