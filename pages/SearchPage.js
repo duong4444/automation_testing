@@ -18,8 +18,19 @@ class SearchPage extends BasePage {
     this.submitPriceFilter = page.locator("#js-submit-filter");
   }
 
+  async closePopups() {
+    await this.page.evaluate(() => {
+      const banner = document.querySelector('.global-banner-popup-container');
+      if (banner) banner.style.display = 'none';
+      const bg = document.querySelector('.bg-popup');
+      if (bg) bg.style.display = 'none';
+    }).catch(() => {});
+  }
+
   async search(keyword) {
+    await this.closePopups();
     await this.page.fill(this.searchInput, keyword);
+    await this.closePopups();
     await this.page.click(this.searchButton);
 
     // Chờ URL chuyển hướng đến trang tìm kiếm
@@ -80,13 +91,47 @@ class SearchPage extends BasePage {
   }
 
   async getProductPrices() {
-    const priceTexts = await this.page.locator(".p-price").allTextContents();
+    return await this.page.evaluate(() => {
+      const container = document.querySelector(
+        ".p-list-container, .product-list-container, #js-product-list",
+      );
+      if (!container) return [];
 
-    return priceTexts.map((price) => Number(price.replace(/[^\d]/g, "")));
+      const productLinks = Array.from(
+        container.querySelectorAll('a[href$=".html"]'),
+      ).filter((link) => {
+        const text = link.innerText ? link.innerText.trim() : "";
+        const href = link.href || "";
+        return text.length > 12 && !href.includes("cart");
+      });
+
+      const seen = new Set();
+      const prices = [];
+      for (const link of productLinks) {
+        if (seen.has(link.href)) continue;
+        seen.add(link.href);
+
+        const card =
+          link.closest('.p-item, .col-item, .product-item, [class*="product"]') ||
+          link.parentElement;
+        if (card) {
+          const priceEl = card.querySelector(".p-price");
+          if (priceEl) {
+            const priceText = priceEl.innerText || priceEl.textContent || "";
+            const priceNum = Number(priceText.replace(/[^\d]/g, ""));
+            if (priceNum > 0) {
+              prices.push(priceNum);
+            }
+          }
+        }
+      }
+      return prices;
+    });
   }
 
   async getProductNames() {
-    return await this.page.locator(".p-name h3").allTextContents();
+    const cards = await this.getProductCards();
+    return cards.map((card) => card.name);
   }
 
   async waitForProductResults() {
@@ -141,19 +186,33 @@ class SearchPage extends BasePage {
   }
 
   async filterByPrice(minPrice, maxPrice) {
-    await this.minPriceInput.fill(minPrice.toString());
-
-    await this.maxPriceInput.fill(maxPrice.toString());
-
+    await this.closePopups();
+    const box = await this.submitPriceFilter.boundingBox();
+    const isClickable = box && box.width > 0 && box.height > 0;
+    if (!isClickable) {
+      if (await this.filterButton.isVisible()) {
+        await this.openFilter();
+        await this.page.waitForTimeout(500);
+      }
+    }
+    await this.closePopups();
+    await this.minPriceInput.fill(minPrice !== undefined && minPrice !== null ? minPrice.toString() : "");
+    await this.maxPriceInput.fill(maxPrice !== undefined && maxPrice !== null ? maxPrice.toString() : "");
+    await this.closePopups();
     await this.submitPriceFilter.click();
+    await this.page.waitForTimeout(2000);
   }
 
   async getProductCount() {
-    return (await this.getProductCards()).length;
+    const cards = await this.getProductCards();
+    return cards.length;
   }
 
   async clickViewMore() {
-    await this.page.locator("#js-product-count").click();
+    const selector = "#js-product-count";
+    await this.page.locator(selector).scrollIntoViewIfNeeded();
+    await this.page.locator(selector).click();
+    await this.page.waitForTimeout(2000);
   }
 }
 
