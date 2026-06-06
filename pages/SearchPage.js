@@ -18,15 +18,6 @@ class SearchPage extends BasePage {
     this.submitPriceFilter = page.locator("#js-submit-filter");
   }
 
-  async closePopups() {
-    await this.page.evaluate(() => {
-      const banner = document.querySelector('.global-banner-popup-container');
-      if (banner) banner.style.display = 'none';
-      const bg = document.querySelector('.bg-popup');
-      if (bg) bg.style.display = 'none';
-    }).catch(() => {});
-  }
-
   async search(keyword) {
     await this.closePopups();
     await this.page.fill(this.searchInput, keyword);

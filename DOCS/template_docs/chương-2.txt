@@ -54,7 +54,7 @@ Module Tìm kiếm và Lọc sản phẩm (được viết trong file `search.sp
 20.   Tổ hợp tìm kiếm "RTX" + Lọc Asus + Khoảng giá trên 20 triệu: Xác thực các sản phẩm hiển thị đồng thời khớp từ khóa, thuộc hãng Asus và có giá trên 20,000,000đ.
 21.   Tìm kiếm theo thông số kỹ thuật (ví dụ "1 T"): Nhập từ khóa `"1 T"` và kiểm chứng các sản phẩm hiển thị chứa thông tin dung lượng tương ứng.
 
-21.2. Chiến lược tiếp cận và Phương pháp kiểm thử
+2.1.2. Chiến lược tiếp cận và Phương pháp kiểm thử
 Dự án áp dụng chiến lược Kiểm thử hộp đen (Black-box Testing) kết hợp phương pháp tự động hóa dạng Script-based thông qua công cụ Playwright. Kịch bản kiểm thử mô phỏng toàn bộ thao tác của người dùng trên trình duyệt (Chrome/Chromium) tương tác trực tiếp lên Front-end mà không đi sâu vào mã nguồn Backend. Các phương pháp kiểm thử cốt lõi bao gồm:
 •	Phương pháp Kiểm thử chức năng (Functional Testing): Tập trung kiểm tra các luồng đi thành công (Happy Path) của chức năng Đăng ký, Đăng nhập, và Tìm kiếm nhằm đảm bảo người dùng có thể thực hiện giao dịch, tra cứu thông tin bình thường.
 •	Phương pháp Kiểm thử tính hợp lệ và chặn lỗi biên (Negative/Validation Testing): Chủ động đưa các dữ liệu lỗi (thiếu trường, email sai định dạng, mật khẩu ngắn, SĐT chứa chữ, SQL injection, khoảng giá sai logic) để kiểm tra khả năng bắt lỗi của Front-end qua các hộp thoại Dialog Alert và ngăn chặn việc gửi request không hợp lệ lên Backend.
