@@ -272,4 +272,106 @@ test.describe("Kiểm thử chức năng Đăng ký tài khoản", () => {
 
     expect(page.url()).not.toContain("status=success");
   });
+
+  test("Đăng ký thất bại với họ và tên chứa ký tự số (Bug #5)", async ({ page }) => {
+    const registerPage = new RegisterPage(page);
+    await registerPage.navigateToRegister();
+
+    const uniqueId = Date.now();
+    const randomEmail = `name_number_${uniqueId}@gmail.com`;
+    const randomPhone = `09${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+    await page.fill(registerPage.fullNameInput, "Trần Hải Đăng2004");
+    await page.fill(registerPage.emailInput, randomEmail);
+    await page.fill(registerPage.passwordInput, "Password123!");
+    await page.fill(registerPage.passwordConfirmInput, "Password123!");
+    await page.fill(registerPage.mobileInput, randomPhone);
+
+    page.on("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+
+    await page.click(registerPage.submitButton);
+    await page.waitForTimeout(2000);
+
+    // Thực tế test case này sẽ bị FAIL đỏ vì hệ thống vẫn cho đăng ký thành công
+    expect(page.url()).not.toContain("status=success");
+  });
+
+  test("Đăng ký thất bại với họ và tên chứa ký tự đặc biệt (Bug #5)", async ({ page }) => {
+    const registerPage = new RegisterPage(page);
+    await registerPage.navigateToRegister();
+
+    const uniqueId = Date.now();
+    const randomEmail = `name_special_${uniqueId}@gmail.com`;
+    const randomPhone = `09${Math.floor(10000000 + Math.random() * 90000000)}`;
+
+    await page.fill(registerPage.fullNameInput, "Trần Hải Đăng@#$");
+    await page.fill(registerPage.emailInput, randomEmail);
+    await page.fill(registerPage.passwordInput, "Password123!");
+    await page.fill(registerPage.passwordConfirmInput, "Password123!");
+    await page.fill(registerPage.mobileInput, randomPhone);
+
+    page.on("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+
+    await page.click(registerPage.submitButton);
+    await page.waitForTimeout(2000);
+
+    // Thực tế test case này sẽ bị FAIL đỏ vì hệ thống vẫn cho đăng ký thành công
+    expect(page.url()).not.toContain("status=success");
+  });
+
+  test("Đăng ký thất bại với số điện thoại thừa ký tự - 15 chữ số (Bug #4)", async ({ page }) => {
+    const registerPage = new RegisterPage(page);
+    await registerPage.navigateToRegister();
+
+    const uniqueId = Date.now();
+    const randomEmail = `phone_long_${uniqueId}@gmail.com`;
+
+    await page.fill(registerPage.fullNameInput, "Nguyễn Văn LongPhone");
+    await page.fill(registerPage.emailInput, randomEmail);
+    await page.fill(registerPage.passwordInput, "Password123!");
+    await page.fill(registerPage.passwordConfirmInput, "Password123!");
+    await page.fill(registerPage.mobileInput, "098765432112345"); // 15 số
+
+    const mobileValue = await page.locator(registerPage.mobileInput).inputValue();
+    console.log(`Độ dài thực tế của số điện thoại trong ô input: ${mobileValue.length}`);
+
+    // Kỳ vọng 1: Ô input phải có maxlength chặn tối đa 10 chữ số
+    expect(mobileValue.length).toBeLessThanOrEqual(10);
+
+    // Kỳ vọng 2: Nếu không chặn ở giao diện thì Back-end phải chặn không cho đăng ký
+    page.on("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+    await page.click(registerPage.submitButton);
+    await page.waitForTimeout(2000);
+    expect(page.url()).not.toContain("status=success");
+  });
+
+  test("Đăng ký thất bại với số điện thoại toàn số 0 (Bug #4)", async ({ page }) => {
+    const registerPage = new RegisterPage(page);
+    await registerPage.navigateToRegister();
+
+    const uniqueId = Date.now();
+    const randomEmail = `phone_zero_${uniqueId}@gmail.com`;
+
+    await page.fill(registerPage.fullNameInput, "Nguyễn Văn ZeroPhone");
+    await page.fill(registerPage.emailInput, randomEmail);
+    await page.fill(registerPage.passwordInput, "Password123!");
+    await page.fill(registerPage.passwordConfirmInput, "Password123!");
+    await page.fill(registerPage.mobileInput, "0000000000");
+
+    page.on("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+
+    await page.click(registerPage.submitButton);
+    await page.waitForTimeout(2000);
+
+    // Thực tế test case này sẽ bị FAIL đỏ vì hệ thống vẫn cho đăng ký thành công
+    expect(page.url()).not.toContain("status=success");
+  });
 });

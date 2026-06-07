@@ -160,8 +160,14 @@ test.describe("Kiểm thử chức năng Đăng nhập tài khoản", () => {
     console.log("URL của cửa sổ Facebook OAuth:", popupUrl);
     expect(popupUrl).toContain("facebook.com");
 
-    // Xác thực 2 (Tìm lỗi thực tế): Kiểm tra xem trang có bị hiển thị lỗi cấu hình ứng dụng không
-    // (Đây là lỗi thật trên website An Phát PC khi họ chưa kích hoạt/cấu hình đúng Facebook App ID)
+    // Xác thực 2 (Tìm lỗi thực tế): Kiểm tra xem trang có bị hiển thị lỗi cấu hình ứng dụng không.
+    // LƯU Ý QUAN TRỌNG: 
+    // - Vì Playwright chạy trên Browser Context sạch (chưa đăng nhập Facebook), trang đầu tiên hiển thị
+    //   sẽ là trang Đăng nhập của Facebook ("Log in to Facebook" hoặc "Đăng nhập Facebook"). Do chưa đăng nhập,
+    //   Facebook chưa kiểm tra quyền ứng dụng nên chưa hiển thị màn hình lỗi "Ứng dụng không hoạt động" (App not active).
+    //   Vì vậy ca test này sẽ báo PASSED trên môi trường chạy tự động sạch.
+    // - Trong thực tế (Manual Test), nếu trình duyệt đã đăng nhập sẵn Facebook, hệ thống sẽ chuyển hướng trực tiếp
+    //   đến trang thông báo lỗi "Ứng dụng không hoạt động" / "App not active" (đây là Bug thực tế của An Phát PC do lỗi cấu hình App ID).
     const popupBodyText = await popup.innerText("body");
     console.log(
       "Nội dung hiển thị trên trang Facebook OAuth:",
@@ -170,6 +176,12 @@ test.describe("Kiểm thử chức năng Đăng nhập tài khoản", () => {
 
     expect(popupBodyText).not.toContain("Ứng dụng không hoạt động");
     expect(popupBodyText).not.toContain("App not active");
+
+    if (popupBodyText.includes("Đăng nhập") || popupBodyText.includes("Log in")) {
+      console.log(
+        "LƯU Ý: Trình duyệt chưa đăng nhập Facebook nên hiển thị form login. Lỗi cấu hình App ID (App not active) chỉ hiển thị sau khi người dùng đăng nhập Facebook."
+      );
+    }
 
     await popup.close();
   });
